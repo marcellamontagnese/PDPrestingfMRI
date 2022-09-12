@@ -1,6 +1,6 @@
 [![DOI](https://zenodo.org/badge/535666986.svg)](https://zenodo.org/badge/latestdoi/535666986)
 
-# PDP restingfMRI
+# Parkinson's Disease Psychosis resting fMRI Analyses
 Scripts for the paper on resting fMRI in PD Psychosis
 
 This repository contains code to analyse resting state fMRI data from patients with Parkinson's Disease Psychosis and healthy control subjects, as reported by Montagnese et al, X. Please cite the paper if you find this code helpful for your analyses. 
