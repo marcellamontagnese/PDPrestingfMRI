@@ -1,0 +1,117 @@
+#### FC across groups - including HC and raincloud plots
+
+library(readxl)
+library(ggplot2)
+library(cowplot)
+library(readr)
+library(forcats)
+library(dplyr)
+
+df <- read_excel("Demographics_PPMI_and_HC.xlsx")
+df$Group_cat <- as.factor(df$Group_cat)
+df$func_conn_subj_avg
+
+#### setup for raincloud plot ####
+"%||%" <- function(a, b) {
+  if (!is.null(a)) a else b
+}
+
+geom_flat_violin <- function(mapping = NULL, data = NULL, stat = "ydensity",
+                             position = "dodge", trim = TRUE, scale = "area",
+                             show.legend = NA, inherit.aes = TRUE, ...) {
+  layer(
+    data = data,
+    mapping = mapping,
+    stat = stat,
+    geom = GeomFlatViolin,
+    position = position,
+    show.legend = show.legend,
+    inherit.aes = inherit.aes,
+    params = list(
+      trim = trim,
+      scale = scale,
+      ...
+    )
+  )
+}
+
+GeomFlatViolin <-
+  ggproto("GeomFlatViolin", Geom,
+          setup_data = function(data, params) {
+            data$width <- data$width %||%
+              params$width %||% (resolution(data$x, FALSE) * 0.9)
+            
+            # ymin, ymax, xmin, and xmax define the bounding rectangle for each group
+            data %>%
+              group_by(group) %>%
+              mutate(ymin = min(y),
+                     ymax = max(y),
+                     xmin = x,
+                     xmax = x + width / 2)
+            
+          },
+          
+          draw_group = function(data, panel_scales, coord) {
+            # Find the points for the line to go all the way around
+            data <- transform(data, xminv = x,
+                              xmaxv = x + violinwidth * (xmax - x))
+            
+            # Make sure it's sorted properly to draw the outline
+            newdata <- rbind(plyr::arrange(transform(data, x = xminv), y),
+                             plyr::arrange(transform(data, x = xmaxv), -y))
+            
+            # Close the polygon: set first and last point the same
+            # Needed for coord_polar and such
+            newdata <- rbind(newdata, newdata[1,])
+            
+            ggplot2:::ggname("geom_flat_violin", GeomPolygon$draw_panel(newdata, panel_scales, coord))
+          },
+          
+          draw_key = draw_key_polygon,
+          
+          default_aes = aes(weight = 1, colour = "grey20", fill = "white", size = 0.5,
+                            alpha = NA, linetype = "solid"),
+          
+          required_aes = c("x", "y")
+  )
+
+
+
+
+#### Raincloud plots ####
+FC_plot <- ggplot(df,aes(x=Group_cat,y=func_conn_subj_avg, fill = Group_cat, colour = Group_cat))+
+  geom_flat_violin(position = position_nudge(x = .25, y = 0),adjust =2, trim = TRUE)+
+  geom_point(position = position_jitter(width = .15), size = .25)+
+  geom_boxplot(aes(x = as.numeric(Group_cat)+0.25, y = func_conn_subj_avg),outlier.shape = NA, alpha = 0.3, width = .1, colour = "BLACK")+
+  ylab('Average FC')+xlab('Group')+ coord_flip()+
+  theme_cowplot()+#+ facet_wrap(~other variable for conditions)+
+  scale_fill_manual(values = c("#A4A4A4","#00AFBB", "#E7B800"))+
+  scale_colour_manual(values = c("#A4A4A4","#00AFBB", "#E7B800"))
+FC_plot
+
+#### Masked NBS FC from PPMI NBS in both cohorts ####
+df_masked <- read_excel('dataset.xlsx')
+df_masked$Group <- as.factor(df_masked$Group)
+
+#### Raincloud plots ####
+FC_masked_plot <- ggplot(df_masked,aes(x=Group,y=ICICLE_NBS_masked_FC_from_PPMI, fill = Group, colour = Group))+
+  geom_flat_violin(position = position_nudge(x = .25, y = 0),adjust =2, trim = TRUE)+
+  geom_point(position = position_jitter(width = .15), size = .25)+
+  geom_boxplot(aes(x = as.numeric(Group)+0.25, y = ICICLE_NBS_masked_FC_from_PPMI),outlier.shape = NA, alpha = 0.3, width = .1, colour = "BLACK")+
+  ylab('Average NBS FC')+xlab('Group')+ coord_flip() +
+  theme_cowplot() +# + facet_wrap(~Study)
+  scale_fill_manual(values = c("#B8860B", "#E7B800"))+ ylim(0,0.6) +
+  scale_colour_manual(values = c("#B8860B", "#E7B800"))
+FC_masked_plot
+
+
+FC_67_plot <- ggplot(df_masked,aes(x=Group,y=NBS_full_67edges_masked, fill = Group, colour = Group))+
+  geom_flat_violin(position = position_nudge(x = .25, y = 0),adjust =2, trim = TRUE)+
+  geom_point(position = position_jitter(width = .15), size = .25)+
+  geom_boxplot(aes(x = as.numeric(Group)+0.25, y = NBS_full_67edges_masked),outlier.shape = NA, alpha = 0.3, width = .1, colour = "BLACK")+
+  ylab('Average NBS FC- 67 edges')+xlab('Group')+ coord_flip() + ylim(0,0.6) +
+  theme_cowplot() +# + facet_wrap(~Study)
+  scale_fill_manual(values = c("#999999", "#D3D3D3"))+
+  scale_colour_manual(values = c("#999999", "#D3D3D3"))
+FC_67_plot
+
