@@ -45,13 +45,11 @@ ggplot(df, aes(x = ICICLE_NBS_masked_FC, y = UPDATED_severity)) +
   geom_point() +
   stat_smooth(method = "lm", formula = y ~ x, size = 1) +
   ylab("Hallucination Severity") +
-  xlab("Masked FC from PPMI NBS") +
-  xlim(0, 0.35)
+  xlab("Masked FC from PPMI NBS") 
 
 # Plot the data with a regression line.
 ggplot(df, aes(y = TOT_frequency, x = ICICLE_NBS_masked_FC)) +
   geom_point() +
   stat_smooth(method = "lm", formula = y ~ x, size = 1) +
   ylab("Hallucination Frequency score") +
-  xlab("Masked FC from PPMI NBS") +
-  xlim(0, 0.35)
+  xlab("Masked FC from PPMI NBS") 
