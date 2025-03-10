@@ -1,7 +1,7 @@
 # Setup
-setwd("<YOUR_DIRECTORY_PATH>")  # Set your working directory
+setwd("<Add your directory here>")  # Set your working directory
 library(ggplot2)
-library(reshape2)
+library(reshape2) 
 library(Hmisc)
 library(stats)
 library(readxl)
